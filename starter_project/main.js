@@ -1,7 +1,6 @@
 import * as THREE from 'three'
-
 // Data and visualization
-import { CompositionShader} from './shaders/CompositionShader.js'
+import { CompositionShader} from './CompositionShader.js'
 import { BASE_LAYER, BLOOM_LAYER, BLOOM_PARAMS, OVERLAY_LAYER } from "./config/renderConfig.js";
 
 // Rendering
@@ -19,15 +18,40 @@ import { CORE_X_DIST, CORE_Y_DIST, GALAXY_THICKNESS } from './config/galaxyConfi
 
 import {gaussianRandom} from './utils.js';
 
+
+
 let canvas, renderer, camera, scene, orbit, baseComposer, bloomComposer, overlayComposer
 
+let raycaster = new THREE.Raycaster();
+raycaster.layers.set(1);
+let mouse = new THREE.Vector2();
+let spheres = []
+function onClick(event) {
+    // camera.layers.set(1);
+    // Calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
+    // Update the picking ray with the camera and mouse position
+    raycaster.setFromCamera(mouse, camera);
+
+    // Calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObjects(spheres);
+
+    if (intersects.length > 0) {
+        window.alert("hi");
+        console.log('Sphere clicked!');
+    } else {
+        console.log('Clicked on empty space.');
+    }
+}
 
 function initThree() {
     
     // grab canvas
     canvas = document.querySelector('#canvas');
-    
+    window.addEventListener('click', onClick, false);
     // scene
     scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0xEBE2DB, 0.00003);
@@ -48,11 +72,37 @@ function initThree() {
     orbit.maxPolarAngle = (Math.PI / 2) - (Math.PI / 360)
 
     //Plane Geometry
-    const planeGeometry = new THREE.PlaneGeometry(1000, 1000); // Adjust dimensions as needed
-    const planeMaterial = new THREE.MeshBasicMaterial({ opacity: 1, transparent: true });
-    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    scene.add(plane);
+    // const planeGeometry = new THREE.PlaneGeometry(1000, 1000); // Adjust dimensions as needed
+    // const planeMaterial = new THREE.MeshBasicMaterial({ opacity: 1, transparent: true });
+    // const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    // scene.add(plane);
    
+     
+    const geometry = new THREE.SphereGeometry(0.3, 8, 8); // 1 is radius, 8 segments for width and height (low-poly)
+    const material = new THREE.MeshBasicMaterial({ 
+        color: 0xffffff, // White color for the sphere (or any color you want)
+        opacity: 1,      // Fully opaque
+        transparent: false // Ensure transparency is disabled
+    }); // Yellow color for the star
+    
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.set(5, 5, 5);
+    scene.add(sphere)
+
+    for (let i = 0; i < 2000; i++) {
+            // let pos = new THREE.Vector3(gaussianRandom(0, CORE_X_DIST), gaussianRandom(0, CORE_Y_DIST), gaussianRandom(0, GALAXY_THICKNESS));
+            let x = gaussianRandom(0, CORE_X_DIST)
+            let y = gaussianRandom(0, CORE_Y_DIST)
+            let z = gaussianRandom(0, GALAXY_THICKNESS)
+            // console.log(x,y,z)
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.layers.set(BLOOM_LAYER)
+            sphere.position.set(x,y,z);
+            // sphere.scale.multiplyScalar(0.5)
+            scene.add(sphere)
+            spheres.push(sphere);
+    }
+
     initRenderPipeline()
     
 
