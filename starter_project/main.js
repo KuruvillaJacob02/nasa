@@ -14,15 +14,20 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 import { Star } from './star.js';
+import { Galaxy } from './galaxy.js';
 import { CORE_X_DIST, CORE_Y_DIST, GALAXY_THICKNESS } from './config/galaxyConfig.js';
+
+import {gaussianRandom} from './utils.js';
 
 let canvas, renderer, camera, scene, orbit, baseComposer, bloomComposer, overlayComposer
 
-function initThree() {
 
+
+function initThree() {
+    
     // grab canvas
     canvas = document.querySelector('#canvas');
-
+    
     // scene
     scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0xEBE2DB, 0.00003);
@@ -42,7 +47,14 @@ function initThree() {
     orbit.maxDistance = 16384;
     orbit.maxPolarAngle = (Math.PI / 2) - (Math.PI / 360)
 
+    //Plane Geometry
+    const planeGeometry = new THREE.PlaneGeometry(1000, 1000); // Adjust dimensions as needed
+    const planeMaterial = new THREE.MeshBasicMaterial({ opacity: 1, transparent: true });
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    scene.add(plane);
+   
     initRenderPipeline()
+    
 
 }
 
@@ -130,9 +142,16 @@ async function render() {
     camera.updateProjectionMatrix();
     
     
-    // stars.forEach((star) => {
-    //     star.updateScale(camera)
-    // })
+    galaxy.stars.forEach((star) => {
+        star.updateScale(camera);
+    });
+
+    // galaxy.hazeArray.forEach((haze) => {
+    //     haze.updateScale(camera);
+    // });
+
+    
+    
 
     // Run each pass of the render pipeline
     renderPipeline()
@@ -161,73 +180,12 @@ function renderPipeline() {
 
 }
 
-async function loadGaiaData() {
-    const response = await fetch('./gaia2.json'); // Load gaia.json file
-    const data = await response.json(); // Parse the data as JSON
-    console.log('Gaia Data:', data);
-    return data;
-}
-
-function normalizeStars(data) {
-    const maxX = Math.max(...data.map(d => Math.abs(d.X)));
-    const maxY = Math.max(...data.map(d => Math.abs(d.Y)));
-    const maxZ = Math.max(...data.map(d => Math.abs(d.Z)));
-    const maxVal = Math.max(maxX, maxY, maxZ); // Get the overall max value for uniform scaling
-
-    return data.map(d => ({
-        X: d.X / maxVal, 
-        Y: d.Y / maxVal, 
-        Z: d.Z / maxVal
-    }));
-}
-
-async function plotStars(scene) {
-    // Load data from gaia.json
-    const starData = await loadGaiaData();
-    
-    // Normalize the data
-    const normalizedData = normalizeStars(starData);
-
-    // Plot each star in the scene
-    normalizedData.forEach(starCoords => {
-        const position = new THREE.Vector3(starCoords.X * 1000, starCoords.Y * 1000, starCoords.Z * 1000); // Scaled for visualization
-        let star = new Star(position);
-        star.toThreeObject(scene);
-    });
-}
-
 
 initThree()
+
 let axes = new THREE.AxesHelper(100.0)
 scene.add(axes)
+let galaxy = new Galaxy(scene)
 
-// const gridHelper = new THREE.GridHelper( 100, 50 );
-
-// gridHelper.rotateX(Math.PI / 2)
-// scene.add( gridHelper );
-
-plotStars(scene)  //PLOTTING FROM JSON FILES
-// let position = new THREE.Vector3(5,-5.0,0)
-// let star = new Star(position)
-// star.toThreeObject(scene)
-
-
-function gaussianRandom(mean=0, stdev=1){
-    let u = 1 - Math.random()
-    let v = Math.random()
-    let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI* v)
-
-    return z * stdev + mean
-}
-
-
-let stars = []
-
-// for ( let i = 0; i < 2000; i++){
-//     let pos = new THREE.Vector3(gaussianRandom(0, CORE_X_DIST), gaussianRandom(0,CORE_Y_DIST), gaussianRandom(0, GALAXY_THICKNESS))
-//     let star = new Star(pos)
-//     star.toThreeObject(scene)
-//     stars.push(star)
-// }
 requestAnimationFrame(render)
 

@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { BLOOM_LAYER } from './config/renderConfig.js'
 import { starTypes } from './config/starDistributions.js'
+import { STAR_MIN, STAR_MAX} from './config/renderConfig.js';
+import { clamp } from './utils.js';
 const texture = new THREE.TextureLoader().load('./resources/sprite120.png')
 // const material = new THREE.SpriteMaterial({map: texture, color: '#FFFFFF'})
 const materials = starTypes.color.map((color) => new THREE.SpriteMaterial({map: texture, color: color}))
@@ -12,6 +14,8 @@ export class Star {
         this.starType = this.generateStarType()
         this.obj = null
     }
+
+    
 
     generateStarType() {
         let num = Math.random() * 100.0
@@ -38,8 +42,8 @@ export class Star {
         let star = new THREE.Sprite(materials[this.starType])
         star.layers.set(BLOOM_LAYER)
 
-        // star.scale.multiplyScalar(starTypes.size[this.starType])
-        star.scale.multiplyScalar(0.3)
+        star.scale.multiplyScalar(starTypes.size[this.starType])
+        // star.scale.multiplyScalar(0.5)
         star.position.copy(this.position)
         this.obj = star
 
