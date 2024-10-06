@@ -5,7 +5,18 @@ import { STAR_MIN, STAR_MAX} from './config/renderConfig.js';
 import { clamp } from './utils.js';
 const texture = new THREE.TextureLoader().load('./resources/sprite120.png')
 // const material = new THREE.SpriteMaterial({map: texture, color: '#FFFFFF'})
-const materials = starTypes.color.map((color) => new THREE.SpriteMaterial({map: texture, color: color}))
+// const materials = starTypes.color.map((color) => new THREE.SpriteMaterial({map: texture, color: color}))
+// Create an array of MeshBasicMaterials for the different star types
+const materials = starTypes.color.map((color) => new THREE.MeshBasicMaterial({
+    color: color, // Set the color from starTypes
+    transparent: true, // Optional: enable transparency if needed
+    opacity: 1, // Fully opaque; adjust if you want some transparency
+}));
+
+// Create an array of SphereGeometries for the different star sizes
+const geometries = starTypes.size.map((size) => new THREE.SphereGeometry(size, 8, 8));
+
+// const geometry = new THREE.SphereGeometry(1, 8, 8); // 1 is radius, 8 segments for width and height (low-poly)
 
 export class Star {
 
@@ -39,14 +50,23 @@ export class Star {
     }
 
     toThreeObject(scene) {
-        let star = new THREE.Sprite(materials[this.starType])
-        star.layers.set(BLOOM_LAYER)
+        // let star = new THREE.Sprite(materials[this.starType])
+        // star.layers.set(BLOOM_LAYER)
 
-        star.scale.multiplyScalar(starTypes.size[this.starType])
-        // star.scale.multiplyScalar(0.5)
+        // star.scale.multiplyScalar(starTypes.size[this.starType])
+        // // star.scale.multiplyScalar(0.5)
+        // star.position.copy(this.position)
+        // this.obj = star
+
+        // scene.add(star)
+
+        let star = new THREE.Mesh(geometries[this.starType], materials[this.starType]);
+        star.layers.set(BLOOM_LAYER)
+        //star.scale.multiplyScalar(starTypes.size[this.starType]);
         star.position.copy(this.position)
         this.obj = star
-
         scene.add(star)
+
     }
+            
 }

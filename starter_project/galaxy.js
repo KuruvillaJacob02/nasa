@@ -61,7 +61,7 @@ export class Galaxy {
         }
 
         // Call plotStars() to load stars from JSON and wait for completion
-        //await plotStars(); 
+        await plotStars(); 
 
 
         // Generate random stars after plotting stars from JSON

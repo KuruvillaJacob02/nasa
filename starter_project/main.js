@@ -27,23 +27,29 @@ raycaster.layers.set(1);
 let mouse = new THREE.Vector2();
 let spheres = []
 function onClick(event) {
-    // camera.layers.set(1);
     // Calculate mouse position in normalized device coordinates
-    // (-1 to +1) for both components
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
     // Update the picking ray with the camera and mouse position
     raycaster.setFromCamera(mouse, camera);
 
-    // Calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObjects(spheres);
+    // Ensure stars have been generated and intersect the objects
+    if (galaxy.stars) {
+        // Map stars to their Three.js mesh objects (this.obj)
+        const starObjects = galaxy.stars.map(star => star.obj);
 
-    if (intersects.length > 0) {
-        window.alert("hi");
-        console.log('Sphere clicked!');
+        // Calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObjects(starObjects);
+
+        if (intersects.length > 0) {
+            window.alert("Star clicked!");
+            console.log('Star clicked!');
+        } else {
+            console.log('Clicked on empty space.');
+        }
     } else {
-        console.log('Clicked on empty space.');
+        console.log('Stars not yet generated.');
     }
 }
 
@@ -89,19 +95,19 @@ function initThree() {
     sphere.position.set(5, 5, 5);
     scene.add(sphere)
 
-    for (let i = 0; i < 2000; i++) {
-            // let pos = new THREE.Vector3(gaussianRandom(0, CORE_X_DIST), gaussianRandom(0, CORE_Y_DIST), gaussianRandom(0, GALAXY_THICKNESS));
-            let x = gaussianRandom(0, CORE_X_DIST)
-            let y = gaussianRandom(0, CORE_Y_DIST)
-            let z = gaussianRandom(0, GALAXY_THICKNESS)
-            // console.log(x,y,z)
-            const sphere = new THREE.Mesh(geometry, material);
-            sphere.layers.set(BLOOM_LAYER)
-            sphere.position.set(x,y,z);
-            // sphere.scale.multiplyScalar(0.5)
-            scene.add(sphere)
-            spheres.push(sphere);
-    }
+    // for (let i = 0; i < 2000; i++) {
+    //         // let pos = new THREE.Vector3(gaussianRandom(0, CORE_X_DIST), gaussianRandom(0, CORE_Y_DIST), gaussianRandom(0, GALAXY_THICKNESS));
+    //         let x = gaussianRandom(0, CORE_X_DIST)
+    //         let y = gaussianRandom(0, CORE_Y_DIST)
+    //         let z = gaussianRandom(0, GALAXY_THICKNESS)
+    //         // console.log(x,y,z)
+    //         let sphere = new THREE.Mesh(geometry, material);
+    //         sphere.layers.set(BLOOM_LAYER)
+    //         sphere.position.set(x,y,z);
+    //         // sphere.scale.multiplyScalar(0.5)
+    //         scene.add(sphere)
+    //         spheres.push(sphere);
+    // }
 
     initRenderPipeline()
     
